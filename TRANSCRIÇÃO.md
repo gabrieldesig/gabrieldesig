@@ -1,85 +1,41 @@
-# Instalar dependências necessárias (se ainda não estiverem instaladas)
-!pip install langchain langchain-google-genai openai-whisper
+cat <<EOF > comandos.txt
+mkdir tarefa-git
+cd tarefa-git
+git init
 
-# Importar as bibliotecas
-from langchain.prompts import PromptTemplate
-from langchain_google_genai.llms.llms import GoogleGenerativeAI
-from whisper import load_model
+echo "Este é o conteúdo do arquivo um." > arquivo1.txt
+echo "Aqui temos outro conteúdo, no segundo arquivo." > arquivo2.txt
+echo "O terceiro arquivo também tem seu próprio conteúdo." > arquivo3.txt
 
-# Funções auxiliares para carregar configurações (substituir por seus próprios valores)
-def get_configs():
-    return {
-        "llm_model": {
-            "name": "gemini-pro",  # Modelo do Google Generative AI
-            "temperature": 0.7,
-            "top_p": 0.9,
-            "top_k": 40
-        },
-        "transcription_model": "large"  # Modelo Whisper
-    }
+git add arquivo1.txt arquivo2.txt arquivo3.txt
+git commit -m "Commit inicial com três arquivos de texto"
 
-def get_llm_model_api_key(provider: str):
-    # Substituir pela chave de API válida
-    return "AIzaSyDQvP4cdQCh2ZxUCP546DsEnLHpXOS7TYo"
+echo "Adicionando uma nova linha ao arquivo um." >> arquivo1.txt
+echo "Arquivo dois recebeu esta nova linha." >> arquivo2.txt
 
-# Carregar configurações
-configs = get_configs()
-api_key = get_llm_model_api_key("Google")
+git status
+git diff
 
-# Configurar o modelo de IA do Google Generative AI
-llm_model = GoogleGenerativeAI(
-    model=configs["llm_model"]["name"],
-    api_key=api_key,
-    temperature=configs["llm_model"]["temperature"],
-    top_p=configs["llm_model"]["top_p"],
-    top_k=configs["llm_model"]["top_k"]
-)
+git add arquivo1.txt arquivo2.txt
+git commit -m "Alterações nos arquivos 1 e 2"
 
-# Criar o template do prompt
-template = """
-    Resume a text from an audio transcription and extract its key words.
-    Resume what was said, and what the audio text transcript is about.
-    Structure these in the below form with "resume:" and "key words:" sections and
-    don't put the original text in the output.
-    If you see any "[FAKE AUDIO]" in the start of the text, just ignore it, but do the tasks with the text.
+git log
+git log --oneline
+git log --oneline --graph --all
+git log -p
 
-    TEXT: {text}
+git revert HEAD
 
-    resume:
+echo "Esta linha será armazenada temporariamente." >> arquivo3.txt
+git stash
+git checkout -b nova-linha-desenvolvimento
+git checkout main
+git stash pop
 
-    key words:
-"""
+git stash list
+git reflog
 
-prompt_template = PromptTemplate(
-    input_variables=["text"],
-    template=template
-)
-
-# Função para resumir um texto
-def resume_text(text: str) -> str:
-    """
-    Resume o texto e extrai palavras-chave usando um modelo de IA.
-    """
-    chain = prompt_template | llm_model
-    response = chain.invoke({"text": text})
-
-    print(response)
-
-# Função para transcrever um áudio
-def transcribe_audio(audio_path: str) -> str:
-    """
-    Transcreve o áudio dado um caminho de arquivo.
-    """
-    if not audio_path.endswith((".mp3", ".wav")):
-        raise ValueError("Apenas arquivos .mp3 e .wav são suportados.")
-
-    w_model = load_model(configs["transcription_model"])
-    return w_model.transcribe(audio_path, fp16=False)["text"]
-
-# Exemplo de uso
-audio_path = "Educacao.mp3"  # Substitua pelo caminho correto do arquivo
-try:
-    transcribed_text = transcribe_audio(audio_path)
-    resume_text(transcribed_text)
-except Exception as e:
-    print("Erro:", e)
+git log --reverse --oneline
+git tag -a v1.0 -m "Versão estável inicial" abc1234
+git push origin v1.0
+EOF
